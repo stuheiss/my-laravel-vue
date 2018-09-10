@@ -1,6 +1,6 @@
 pipeline {
     agent {
-        label "jenkins-php"
+        label "jenkins-python"
     }
     environment {
       ORG               = 'stuheiss'
@@ -18,7 +18,7 @@ pipeline {
           HELM_RELEASE = "$PREVIEW_NAMESPACE".toLowerCase()
         }
         steps {
-          container('php') {
+          container('python') {
             sh "python -m unittest"
 
             sh 'export VERSION=$PREVIEW_VERSION && skaffold build -f skaffold.yaml'
@@ -28,7 +28,7 @@ pipeline {
           }
 
           dir ('./charts/preview') {
-           container('php') {
+           container('python') {
              sh "make preview"
              sh "jx preview --app $APP_NAME --dir ../.."
            }
@@ -40,7 +40,7 @@ pipeline {
           branch 'master'
         }
         steps {
-          container('php') {
+          container('python') {
             // ensure we're not on a detached head
             sh "git checkout master"
             sh "git config --global credential.helper store"
@@ -50,11 +50,11 @@ pipeline {
             sh "echo \$(jx-release-version) > VERSION"
           }
           dir ('./charts/my-laravel-vue') {
-            container('php') {
+            container('python') {
               sh "make tag"
             }
           }
-          container('php') {
+          container('python') {
             sh "python -m unittest"
 
             sh 'export VERSION=`cat VERSION` && skaffold build -f skaffold.yaml'
@@ -69,7 +69,7 @@ pipeline {
         }
         steps {
           dir ('./charts/my-laravel-vue') {
-            container('php') {
+            container('python') {
               sh 'jx step changelog --version v\$(cat ../../VERSION)'
 
               // release the helm chart
